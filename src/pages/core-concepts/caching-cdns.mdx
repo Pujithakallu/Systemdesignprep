@@ -1,0 +1,69 @@
+# Caching and CDNs
+
+## Caching
+
+Caching involves storing copies of frequently accessed data in a temporary, fast-access storage layer (usually RAM) to reduce latency and database load.
+
+**Cache Eviction Policies:**
+- **LRU (Least Recently Used):** Discards the least recently accessed items first.
+- **LFU (Least Frequently Used):** Discards the items accessed least often.
+- **FIFO (First In First Out):** Discards the oldest items first.
+
+**Write Policies:**
+- **Write-Through:** Data is written to the cache and the database simultaneously. (Safe, slower writes).
+- **Write-Back (Write-Behind):** Data is written to the cache alone, and asynchronously synced to the database later. (Fast writes, risk of data loss if cache crashes).
+
+## CDN (Content Delivery Network)
+
+A CDN is a geographically distributed network of proxy servers and their data centers. The goal is to provide high availability and performance by distributing the service spatially relative to end-users.
+
+CDNs are primarily used for static assets:
+- Images, Videos
+- CSS, JavaScript files
+- HTML pages
+
+```mermaid
+graph LR
+    User[User in Japan] --> CDN_JP[CDN Edge Server - Japan]
+    CDN_JP -- Cache Miss --> Origin[Origin Server - US]
+    Origin --> CDN_JP
+    CDN_JP -- Cache Hit --> User
+```
+
+import MCQ from '@/components/mcq/MCQ'
+
+<MCQ 
+  question="Which cache writing policy offers the lowest latency for write operations but carries the highest risk of data loss in the event of a cache server crash?"
+  options={[
+    "Write-Through",
+    "Write-Around",
+    "Write-Back",
+    "Read-Through"
+  ]}
+  correctAnswerIndex={2}
+  explanation="Write-Back (or Write-Behind) writes data to the cache immediately and acknowledges the write to the client, but delays writing the data to the persistent database. If the cache crashes before the sync, data is lost."
+/>
+
+<MCQ
+  question="A user in Tokyo accesses a website hosted in Virginia. With a CDN, what happens on the first request?"
+  options={[
+    "The CDN edge in Tokyo serves cached content instantly.",
+    "The CDN edge in Tokyo has a cache miss, fetches from the origin server in Virginia, caches it, then serves it. Subsequent users in Tokyo get it from the edge.",
+    "The request goes directly to Virginia, bypassing the CDN.",
+    "The CDN compresses the data but doesn't cache it."
+  ]}
+  correctAnswerIndex={1}
+  explanation="On the first request (cache miss), the CDN edge server fetches from origin and caches the response. All subsequent requests from that region are served locally from the edge, dramatically reducing latency."
+/>
+
+<MCQ
+  question="Your Redis cache has a 95% hit rate. One day, the cache server restarts and is empty. What is this scenario called, and how do you mitigate it?"
+  options={[
+    "Cache Penetration — use Bloom filters.",
+    "Cache Stampede (Thundering Herd) — use request coalescing or cache warming on restart.",
+    "Cache Aside — use write-through cache.",
+    "Cache Poisoning — use HTTPS."
+  ]}
+  correctAnswerIndex={1}
+  explanation="When a cache restarts empty, all requests hit the database simultaneously (thundering herd). Mitigations include warming the cache before redirecting traffic, request coalescing (only one request fetches from DB while others wait), and staggered TTLs."
+/>

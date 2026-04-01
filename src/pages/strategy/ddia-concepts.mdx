@@ -1,0 +1,72 @@
+# DDIA Core Concepts
+
+*Designing Data-Intensive Applications* (DDIA) by Martin Kleppmann is considered the bible of system design. Here are the core concepts you must know for senior-level interviews.
+
+## 1. Reliability, Scalability, and Maintainability
+- **Reliability:** The system continues to work correctly even when things go wrong (hardware faults, software bugs, human error).
+- **Scalability:** The system can cope with increased load (data volume, traffic volume, complexity) without performance degradation.
+- **Maintainability:** The system is easy for new engineers to understand, operate, and modify.
+
+## 2. Replication Strategies
+How do we keep multiple copies of data in sync?
+- **Single-Leader (Active/Passive):** One node takes all writes, followers copy the data. Easy to reason about, but the leader is a bottleneck.
+- **Multi-Leader (Active/Active):** Multiple nodes accept writes. Great for multi-datacenter setups, but requires complex conflict resolution.
+- **Leaderless (Dynamo-style):** Any node accepts writes. Uses "Quorum" reads/writes to ensure data consistency (e.g., Cassandra).
+
+## 3. Partitioning (Sharding)
+How do we split data across multiple machines?
+- **Key Range Partitioning:** Keys A-M on Node 1, N-Z on Node 2. Good for range queries, bad for hotspots.
+- **Hash Partitioning:** Hash the key to determine the node. Great for even distribution, bad for range queries.
+
+## 4. Transactions and Isolation Levels
+How do we handle concurrent access to data?
+- **Read Uncommitted:** Dirty reads allowed.
+- **Read Committed:** No dirty reads.
+- **Repeatable Read (Snapshot Isolation):** If you read a row twice in a transaction, it will be the same. Usually implemented via MVCC (Multi-Version Concurrency Control).
+- **Serializable:** The strongest level. Transactions act as if they were executed sequentially, one after another.
+
+## 5. Consensus Algorithms
+How do distributed nodes agree on something (like who the Leader is)?
+- Algorithms like **Paxos** and **Raft** ensure that a cluster of nodes can agree on a single state, even if some nodes fail or network packets are delayed.
+
+---
+
+## Quiz
+
+import MCQ from '@/components/mcq/MCQ'
+
+<MCQ 
+  question="In a Leaderless replication system (like Cassandra), what is 'Quorum'?"
+  options={[
+    "A background process that deletes old data.",
+    "A rule stating that the number of nodes that must acknowledge a Write (W) plus the number of nodes queried for a Read (R) must be strictly greater than the total number of replicas (N).",
+    "The algorithm used to elect a new leader when the old one dies.",
+    "A type of B-Tree index."
+  ]}
+  correctAnswerIndex={1}
+  explanation="Quorum (W + R > N) guarantees that at least one of the nodes you read from will have the most recent write, ensuring strong consistency in a leaderless architecture."
+/>
+
+<MCQ
+  question="Two users concurrently update the same document in a multi-leader setup (e.g., Google Docs across data centers). How are conflicts typically resolved?"
+  options={[
+    "The second write always fails.",
+    "Use a conflict resolution strategy: Last-Write-Wins (LWW) using timestamps, or application-level merge logic using CRDTs (Conflict-free Replicated Data Types).",
+    "The database locks the document globally.",
+    "One data center is always chosen as the winner."
+  ]}
+  correctAnswerIndex={1}
+  explanation="Multi-leader replication inevitably creates write conflicts. LWW is the simplest strategy but can lose data. CRDTs (e.g., for counters, sets) allow automatic merging without data loss. Application-level merge logic is needed for complex documents."
+/>
+
+<MCQ
+  question="What is the difference between Snapshot Isolation (Repeatable Read) and Serializable isolation in PostgreSQL?"
+  options={[
+    "They are identical.",
+    "Snapshot Isolation uses MVCC so each transaction sees a consistent snapshot, but allows write skew anomalies. Serializable adds checks to detect and abort transactions that would violate serializability.",
+    "Serializable is faster because it uses fewer locks.",
+    "Snapshot Isolation only works with NoSQL databases."
+  ]}
+  correctAnswerIndex={1}
+  explanation="Snapshot Isolation gives each transaction a frozen view of the database at its start time (via MVCC), preventing dirty reads and non-repeatable reads. However, it allows 'write skew' (two transactions read the same data, make decisions based on it, and write non-conflicting rows, creating an inconsistent state). Serializable Snapshot Isolation (SSI) in PostgreSQL detects these anomalies and aborts one transaction."
+/>

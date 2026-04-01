@@ -1,0 +1,75 @@
+# File Systems Design
+
+A file system dictates how data is stored and retrieved on a storage medium (like a hard drive or SSD). 
+
+## Core Components
+
+1.  **Data Blocks:** The actual raw data of the file, split into fixed-size blocks (e.g., 4KB).
+2.  **Inodes (Index Nodes):** Metadata about the file. An inode contains:
+    - File size, permissions, owner, timestamps.
+    - **Pointers** to the data blocks where the actual file content lives.
+    - *Note: The file name is NOT stored in the inode.*
+3.  **Directories:** A directory is just a special type of file. Its data blocks contain a list of mappings: `(File Name -> Inode Number)`.
+4.  **Superblock:** Contains metadata about the entire file system (total blocks, free blocks, root inode location).
+
+## How a File is Read
+
+When you read `/home/user/doc.txt`:
+1.  Read the Superblock to find the Root Directory (`/`) inode.
+2.  Read the `/` directory data blocks to find the inode number for `home`.
+3.  Read the `home` directory data blocks to find the inode number for `user`.
+4.  Read the `user` directory data blocks to find the inode number for `doc.txt`.
+5.  Read the `doc.txt` inode to find the pointers to its data blocks.
+6.  Read the data blocks to get the text.
+
+```mermaid
+graph TD
+    Dir[Directory Data Block<br/>"doc.txt" -> Inode 42] --> Inode[Inode 42<br/>Size: 12KB<br/>Permissions: 644]
+    Inode --> Block1[Data Block 1]
+    Inode --> Block2[Data Block 2]
+    Inode --> Block3[Data Block 3]
+```
+
+## Distributed File Systems (e.g., HDFS, GFS)
+
+For massive scale, a single disk isn't enough. Distributed File Systems split large files into massive chunks (e.g., 64MB or 128MB) and distribute them across hundreds of commodity servers.
+- **NameNode (Master):** Stores the metadata (which chunks belong to which file, and which servers hold those chunks).
+- **DataNodes (Workers):** Store the actual data chunks.
+
+import MCQ from '@/components/mcq/MCQ'
+
+<MCQ 
+  question="In a standard Unix-like file system, where is the name of a file stored?"
+  options={[
+    "Inside the file's Inode.",
+    "Inside the Superblock.",
+    "Inside the data blocks of the directory that contains the file.",
+    "Inside the file's own data blocks."
+  ]}
+  correctAnswerIndex={2}
+  explanation="The file name is not stored in the inode. It is stored in the directory file. A directory is essentially a list mapping human-readable file names to their corresponding inode numbers."
+/>
+
+<MCQ
+  question="In HDFS, the default chunk size is 128MB. Why is this so much larger than a local file system's 4KB block size?"
+  options={[
+    "HDFS stores smaller files.",
+    "Large chunks minimize the metadata overhead on the NameNode and amortize the cost of network latency — one network round trip transfers 128MB of useful data.",
+    "HDFS runs on faster hard drives.",
+    "128MB is the maximum size an operating system can handle."
+  ]}
+  correctAnswerIndex={1}
+  explanation="In a distributed system, each chunk requires metadata tracking. Millions of 4KB chunks would overwhelm the NameNode. Large chunks also mean fewer network round trips to transfer a large file, and disk throughput (not seek time) becomes the bottleneck."
+/>
+
+<MCQ
+  question="What is the single point of failure in a basic HDFS architecture, and how is it mitigated?"
+  options={[
+    "The DataNodes — mitigated by RAID.",
+    "The NameNode — mitigated by a standby NameNode with shared edit logs (via a Quorum Journal Manager).",
+    "The network switch — mitigated by redundant cables.",
+    "The client application — mitigated by retries."
+  ]}
+  correctAnswerIndex={1}
+  explanation="The NameNode holds all file system metadata in memory. If it fails, the entire cluster becomes unusable. HDFS HA (High Availability) runs a standby NameNode that shares the edit log journal, allowing instant failover."
+/>

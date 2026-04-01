@@ -1,0 +1,42 @@
+# Clarifying Inputs
+
+Before you design anything, you must ask the interviewer questions to define the constraints of the system. This is called "Back-of-the-envelope estimation."
+
+## 1. Traffic & Usage
+- **DAU (Daily Active Users):** How many users use the system daily? (e.g., 100 Million).
+- **Read/Write Ratio:** Is the system read-heavy (Twitter, 100:1) or write-heavy (IoT logging, 1:100)?
+- **QPS (Queries Per Second):** 
+  - *Formula:* `(DAU * average_requests_per_user) / 100,000` (since there are ~86,400 seconds in a day, rounding to 100k makes math easy).
+
+## 2. Storage & Data
+- **Data Size per Request:** How big is a typical payload? (e.g., Tweet = 200 bytes, Image = 2MB).
+- **Retention Period:** Do we keep data forever? (e.g., 5 years).
+- **Total Storage Needed:** 
+  - *Formula:* `Writes_per_second * Data_Size * Seconds_in_5_years`.
+
+## 3. CAP Theorem Constraints
+- **Consistency vs Availability:** If a network partition occurs, do we show the user an error (Consistency) or show them slightly stale data (Availability)?
+- *Financial systems:* Favor Consistency.
+- *Social media:* Favor Availability.
+
+## 4. Latency Requirements
+- What is the acceptable latency for a request? (< 200ms for web, < 10ms for real-time gaming).
+
+## Example: Twitter Clarification
+**Candidate:** "For Twitter, I assume we have about 300 million DAU, and each user views 100 tweets a day and posts 1 tweet. This gives us a 100:1 Read/Write ratio. Is that a fair assumption?"
+**Interviewer:** "Yes, that sounds right."
+**Candidate:** "Okay, so Write QPS is `(300M * 1) / 100k = 3,000 writes/sec`. Read QPS is `(300M * 100) / 100k = 300,000 reads/sec`. Because it's so read-heavy, I will definitely need to design a robust caching layer."
+
+import MCQ from '@/components/mcq/MCQ'
+
+<MCQ 
+  question="If an interviewer asks you to design a system for a bank to process ATM withdrawals, which side of the CAP theorem should you prioritize?"
+  options={[
+    "Availability (AP) - The user must always be able to withdraw money, even if their balance is temporarily incorrect.",
+    "Consistency (CP) - The system must guarantee the balance is accurate before dispensing money, even if it means denying the transaction during a network failure.",
+    "Partition Tolerance (CA) - The system should ignore network failures.",
+    "Latency - The transaction must happen in under 1ms."
+  ]}
+  correctAnswerIndex={1}
+  explanation="Financial systems must prioritize Consistency (CP). It is better to deny a transaction (sacrificing availability) than to allow a user to withdraw money they don't have due to a stale read from a partitioned database."
+/>

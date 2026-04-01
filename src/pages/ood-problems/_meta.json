@@ -1,0 +1,12 @@
+{
+  "library-management": "Library Management",
+  "vending-machine": "Vending Machine",
+  "atm": "ATM System",
+  "elevator-system": "Elevator System",
+  "online-bookstore": "Online Bookstore",
+  "notification-system": "Notification System",
+  "file-system": "File System",
+  "ride-share-billing": "Ride-Share Billing",
+  "chat-room": "Chat Room",
+  "rate-limiter": "Rate Limiter"
+}

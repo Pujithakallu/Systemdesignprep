@@ -1,0 +1,7 @@
+{
+  "llm-serving": "LLM Serving Platform",
+  "rag-pipeline": "RAG Pipeline",
+  "agentic-orchestration": "Agentic AI / MCP",
+  "token-context-optimization": "Token & Context Optimization",
+  "ml-feature-store": "ML Feature Store"
+}

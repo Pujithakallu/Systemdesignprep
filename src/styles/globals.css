@@ -1,0 +1,15 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+.mcq-container {
+  @apply my-8 p-6 border rounded-lg shadow-sm;
+}
+
+.mcq-option {
+  @apply w-full text-left p-3 rounded-md border transition-colors duration-200;
+}
+
+.mcq-submit {
+  @apply mt-6 px-5 py-2.5 rounded-md font-medium transition-colors;
+}

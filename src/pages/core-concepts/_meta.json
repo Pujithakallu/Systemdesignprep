@@ -1,0 +1,7 @@
+{
+  "read-vs-write": "Read vs Write Optimized",
+  "sharding-hashing": "Sharding & Consistent Hashing",
+  "caching-cdns": "Caching & CDNs",
+  "protocols": "WebSockets & HTTP",
+  "locking": "Locking Mechanisms"
+}

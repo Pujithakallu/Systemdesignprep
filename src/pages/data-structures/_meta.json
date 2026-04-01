@@ -1,0 +1,6 @@
+{
+  "lfu": "Constant Time LFU",
+  "lsm-trees": "LSM Trees",
+  "bloom-filters": "Bloom Filters",
+  "b-trees": "B+ Trees in Databases"
+}

@@ -1,0 +1,72 @@
+# Log-Structured Merge-Trees (LSM Trees)
+
+LSM Trees are the data structure underlying many modern, write-optimized NoSQL databases like Cassandra, RocksDB, and LevelDB.
+
+## The Problem with B-Trees
+
+Traditional relational databases use B-Trees. When you write to a B-Tree, the database has to find the exact location on disk to place the data. This results in **random disk I/O**, which is very slow, especially on spinning hard drives.
+
+## How LSM Trees Work
+
+LSM Trees solve this by turning random writes into **sequential writes**.
+
+1.  **MemTable (In-Memory):** All incoming writes are first appended to an in-memory balanced tree (like a Red-Black tree). Because it's in memory, it's extremely fast.
+2.  **Commit Log (On-Disk):** To prevent data loss if the server crashes, every write is also sequentially appended to a log file on disk.
+3.  **SSTable (On-Disk):** When the MemTable gets too large, it is flushed to disk as an Immutable Sorted String Table (SSTable). Because the MemTable was already sorted, flushing it is a fast sequential write.
+4.  **Compaction:** Over time, you accumulate many SSTables. A background process called "compaction" merges these tables together, removing deleted data (tombstones) and keeping the data sorted.
+
+### Reading Data
+To read a key, the database checks:
+1. The MemTable (fastest).
+2. The most recent SSTable.
+3. Older SSTables.
+*(Bloom filters are heavily used here to quickly skip SSTables that definitely don't contain the key).*
+
+```mermaid
+graph TD
+    Write[Incoming Write] --> MemTable[MemTable (In-Memory Tree)]
+    Write --> WAL[Write-Ahead Log (Disk)]
+    
+    MemTable -- "Flushes when full" --> SST1[SSTable Level 0 (Disk)]
+    
+    SST1 -- "Background Compaction" --> SST2[SSTable Level 1]
+    SST2 -- "Background Compaction" --> SST3[SSTable Level 2]
+```
+
+import MCQ from '@/components/mcq/MCQ'
+
+<MCQ 
+  question="Why do LSM Trees require a background process called 'Compaction'?"
+  options={[
+    "To convert the data into a B-Tree format for faster reading.",
+    "To merge multiple immutable SSTables, remove deleted/overwritten data, and reclaim disk space.",
+    "To compress the in-memory MemTable so it takes up less RAM.",
+    "To sync the data to a remote replica database."
+  ]}
+  correctAnswerIndex={1}
+  explanation="Because SSTables are immutable, updates and deletes just create new entries in newer SSTables. Compaction is required to merge these files, apply the updates/deletes (tombstones), and clean up the disk."
+/>
+
+<MCQ
+  question="What is a 'tombstone' in LSM Tree databases like Cassandra?"
+  options={[
+    "A data structure for storing timestamps.",
+    "A special marker written to indicate a key has been deleted, since SSTables are immutable and cannot be modified in-place.",
+    "A backup copy of the MemTable.",
+    "A type of hash index."
+  ]}
+  correctAnswerIndex={1}
+  explanation="Since SSTables are append-only and immutable, you cannot simply remove a key. Instead, a tombstone marker is written. During compaction, the tombstone cancels out the original entry, effectively deleting it."
+/>
+
+<MCQ
+  question="Why is a Write-Ahead Log (WAL) essential in an LSM Tree database?"
+  options={[
+    "It speeds up read operations.",
+    "It stores the index for B-Trees.",
+    "If the server crashes, the MemTable (in-memory) is lost. The WAL on disk allows recovery of uncommitted writes.",
+    "It compresses data before writing to SSTables."
+  ]}
+  correctAnswerIndex={2}
+  explanation="The MemTable lives in RAM. If the server crashes before the MemTable is flushed to an SSTable on disk, that data is lost. The WAL (a sequential append-only log on disk) records every write, allowing the MemTable to be reconstructed after a crash."
+/>

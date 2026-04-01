@@ -1,0 +1,12 @@
+{
+  "index": "Welcome",
+  "strategy": "Interview Strategy",
+  "ood": "Object-Oriented Design",
+  "ood-problems": "OOD Interview Problems",
+  "core-concepts": "Core Concepts",
+  "data-structures": "Data Structures",
+  "storage-db": "Storage & Databases",
+  "hld": "High-Level Design",
+  "deep-dives": "Deep Dives",
+  "ai-systems": "AI & LLM Systems"
+}
