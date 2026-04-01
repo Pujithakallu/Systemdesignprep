@@ -10,9 +10,11 @@ MDX for combining content with flexibility
 
 ## Running the project
 git clone https://github.com/Pujithakallu/Systemdesignprep.git
-cd Systemdesignprep
-npm install
-npm run dev
+
+
+-->cd Systemdesignprep
+--> npm install
+--> npm run dev
 
 # Open this URL in your browser
 http://localhost:3000
